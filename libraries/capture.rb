@@ -1,3 +1,5 @@
+require 'json'
+
 module Huchen
 
   # Network traffic capture
@@ -17,6 +19,22 @@ module Huchen
         raise ArgumentError.new 'You must provide either a :json_file_path or :json_string'
       end
       @options = options
+    end
+
+    # The HTTP requests captured.
+    #
+    # @return [Array] Array of captured HTTP requests
+    # @raise [Huchen::CaptureReadError] If any packet is malformed
+    def http_requests
+      packets.each_with_index.map do |pkt, index|
+        unless pkt[:request]['URL'].has_key? 'Path'
+          raise CaptureReadError.new("HTTP request missing field (:path): #{index}", index)
+        end
+        pkt[:path] = pkt[:request]['URL']['Path']
+        pkt[:host] = pkt[:request]['Host']
+        pkt[:user_agent] = pkt[:request]['Header']['User-Agent'].first if pkt[:request]['Header'].has_key? 'User-Agent'
+        pkt
+      end
     end
 
     # Parse the network capture and return the captured packets.
@@ -40,7 +58,7 @@ module Huchen
 
     # Map of pcap2json fields to nicer ruby symbols
     KEY_MAP = {'SrcIp' => :src_ip_address, 'DestIp' => :dest_ip_address, 'SrcPort' => :src_port,
-               'DestPort' => :dest_port, 'Data' => :data}
+               'DestPort' => :dest_port, 'Request' => :request}
 
     # Convert pcap2json keys to nicer ruby equivalents.
     #
@@ -51,7 +69,9 @@ module Huchen
     def convert_packet_keys(packet, index)
       ruby_packet = {}
       KEY_MAP.keys.each do |key|
-        raise CaptureReadError.new("Packet missing field (:#{KEY_MAP[key]}): #{index}", index) unless packet.has_key? key
+        if key != 'Request'
+          raise CaptureReadError.new("Packet missing field (:#{KEY_MAP[key]}): #{index}", index) unless packet.has_key? key
+        end
         ruby_packet[KEY_MAP[key]] = packet[key]
       end
       ruby_packet

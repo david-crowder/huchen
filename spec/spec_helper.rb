@@ -1,4 +1,3 @@
 require 'json'
 require 'tmpdir'
-require_relative '../libraries/capture'
-require_relative '../libraries/depends'
+%w{capture depends}.each{|lib| require File.join(File.dirname(__FILE__), '..', 'libraries', lib)}
