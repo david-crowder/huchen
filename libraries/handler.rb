@@ -10,7 +10,7 @@ module Huchen
       capture = Capture.new(:json_file_path => node[:huchen][:capture_file])
       depends = Depends.new(matchers, capture)
       if depends.external_deps?
-        Chef::Log.warn("This converge depends the following external dependencies and may not be repeatable:")
+        Chef::Log.warn("This converge depends on the following external dependencies and may not be repeatable:")
         Chef::Log.warn(depends.to_s)
       end
     end
