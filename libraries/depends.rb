@@ -50,7 +50,7 @@ module Huchen
 
     # A string representation of the discovered dependencies, suitable for showing to the end user.
     def to_s
-      lines = packages.map{|pkg| "[#{pkg[:type]}] #{pkg[:name]} (#{pkg[:host]})"}
+      lines = packages.map{|pkg| "[#{pkg[:type]}] #{pkg[:name]} (#{pkg[:host]})"}.sort
       lines << unmatched.map{|req| filter_request(req).inspect.gsub(/^/, '[unmatched] ')}
       lines.join("\n").strip
     end
